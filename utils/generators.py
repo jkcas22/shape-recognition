@@ -102,6 +102,8 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
         The array of shape parameters relativ to im_size
     nse : ndarray
         The array of noise i.e. line parameters relativ to im_size
+    box : ndarray
+        The array of enclosing boxes around shapes
     """
     sha = np.c_[shapes.copy(),rnd.random(len(shapes))]
     sha[:,1:4] = sha[:,1:4]*im_size
@@ -113,11 +115,14 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
     plt.subplots_adjust(bottom=0.0, left=0.0, right=1.0, top=1.0)
     ax = plt.gca()
     patches = []
+    box = []
     for s in sha:
         if s[0] < 3:
-            patches.append(matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], fc='b', fill=False))
+            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], fc='b', fill=False)
         else:
-            patches.append(matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5],fc='b',fill=False))
+            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5],fc='b',fill=False)
+        box.append(patch.get_extents().get_points())
+        patches.append(patch)
     if show_center:
         for s in sha:
             patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, fc='b'))
@@ -135,7 +140,7 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
     fig.canvas.flush_events()
     img = np.array(fig.canvas.renderer.buffer_rgba())
     plt.cla()
-    return (img[:,:,0],sha,nse)
+    return (img[:,:,0],sha,nse,np.reshape(box, (-1,4), order='F'))
 
 
 def gen_details(shapes_im_size, shapes, image, rnd=np.random.default_rng(), max_fluct=0):
