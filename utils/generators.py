@@ -74,7 +74,7 @@ def gen_noise(rnd=np.random.default_rng(), num_noise=500, max_line=1/20, min_lin
     return params
 
 
-def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, max_lw=0.15, min_lw=0.1, show_center=False):
+def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
     """Generates an image with geometric shapes and noise on it
 
     Parameters
@@ -116,24 +116,24 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
     ax = plt.gca()
     patches = []
     box = []
-    for s in sha:
-        if s[0] < 3:
-            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=(0.5,)*3, fill=False)
-        else:
-            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5], ec=(0.5,)*3,fill=False)
-        box.append(patch.get_extents().get_points())
-        patches.append(patch)
-    if show_center:
-        for s in sha:
-            patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, ec=(0.0,)*3))
-    ax.add_collection(PatchCollection(patches, match_original=True))
     if noise is None:
         nse = None
     else:
         nse = np.c_[noise.copy(),rnd.random(len(noise))]
         nse[:,0:4] = nse[:,0:4]*im_size
         nse[:,4] = min_lw+nse[:,4]*(max_lw-min_lw)
-        ax.add_collection(LineCollection(nse[:,0:4].reshape((len(nse),2,2)),linewidths=nse[:,4]))
+        ax.add_collection(LineCollection(nse[:,0:4].reshape((len(nse),2,2)),linewidths=nse[:,4], colors=np.matmul(rnd.random((len(nse),1)),np.ones((1,3)))*min_gray, zorder=1))
+    for s in sha:
+        if s[0] < 3:
+            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=np.ones(3)*rnd.random()*min_gray, fill=False)
+        else:
+            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5], ec=np.ones(3)*rnd.random()*min_gray, fill=False)
+        box.append(patch.get_extents().get_points())
+        patches.append(patch)
+    if show_center:
+        for s in sha:
+            patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, ec='0'))
+    ax.add_collection(PatchCollection(patches, match_original=True, zorder=2))
     fig = plt.gcf()
     fig.set(figwidth=1, figheight=1, dpi=im_size)
     fig.canvas.draw()
