@@ -118,14 +118,14 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
     box = []
     for s in sha:
         if s[0] < 3:
-            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], fc='b', fill=False)
+            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=(0.5,)*3, fill=False)
         else:
-            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5],fc='b',fill=False)
+            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5], ec=(0.5,)*3,fill=False)
         box.append(patch.get_extents().get_points())
         patches.append(patch)
     if show_center:
         for s in sha:
-            patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, fc='b'))
+            patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, ec=(0.0,)*3))
     ax.add_collection(PatchCollection(patches, match_original=True))
     if noise is None:
         nse = None
