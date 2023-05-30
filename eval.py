@@ -173,6 +173,13 @@ if __name__ == '__main__':
                 target.append(true_dict)
             #####################################
 
+            pred0=preds[0]
+            targ0=target[0]
+            print(len(pred0))
+            print(pred0)
+            print(len(targ0))
+            print(targ0)
+
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
 
         # gather the stats from all processes
