@@ -28,9 +28,9 @@ def gen_shapes(rnd=np.random.default_rng(), num_shapes=25,max_radius=1/20,min_ra
         An array of size=(num_shapes,5) of all the parameters of the shapes
     """
 
-    params = np.zeros((num_shapes,5))
+    params = np.zeros((num_shapes,7))
     params[:,0] = rnd.integers(2,5,size=num_shapes)
-    params[:,1:5] = rnd.random((num_shapes,4))
+    params[:,1:7] = rnd.random((num_shapes,6))
     if no_rotation:
         params[:,4] = 0
     if no_scaling:
@@ -66,7 +66,7 @@ def gen_noise(rnd=np.random.default_rng(), num_noise=500, max_line=1/20, min_lin
         An array of size=(num_noise,4) of all the parameters of the lines
     """
 
-    params = rnd.random((num_noise,4))
+    params = rnd.random((num_noise,6))
     params[:,2] = min_line+params[:,2]*(max_line-min_line)
     params[:,0] = params[:,2]+np.multiply(params[:,0],1-2*params[:,2])
     params[:,1] = params[:,2]+np.multiply(params[:,1],1-2*params[:,2])
@@ -74,7 +74,7 @@ def gen_noise(rnd=np.random.default_rng(), num_noise=500, max_line=1/20, min_lin
     return params
 
 
-def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
+def gen_image(shapes, noise = None, im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
     """Generates an image with geometric shapes and noise on it
 
     Parameters
@@ -87,10 +87,12 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
         Generator for random numbers representing the line width of different shapes
     im_size : int
         The width and hight of the image (in pixel)
-    max_line : float
+    max_lw : float
         Maximum line width
-    min_line : float
+    min_lw : float
         Minimum line width
+    min_gray : float
+        Minimum grayscale value, i.e. maximum light gray
     show_center : bool
         Flag for drawing each center of the shapes circumcircles
 
@@ -105,7 +107,7 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
     box : ndarray
         The array of enclosing boxes around shapes
     """
-    sha = np.c_[shapes.copy(),rnd.random(len(shapes))]
+    sha = shapes.copy()
     sha[:,1:4] = sha[:,1:4]*im_size
     sha[:,5] = min_lw+sha[:,5]*(max_lw-min_lw)
     plt.axis('scaled')
@@ -119,15 +121,15 @@ def gen_image(shapes, noise = None, rnd=np.random.default_rng(), im_size=160, ma
     if noise is None:
         nse = None
     else:
-        nse = np.c_[noise.copy(),rnd.random(len(noise))]
+        nse = noise.copy()
         nse[:,0:4] = nse[:,0:4]*im_size
         nse[:,4] = min_lw+nse[:,4]*(max_lw-min_lw)
-        ax.add_collection(LineCollection(nse[:,0:4].reshape((len(nse),2,2)),linewidths=nse[:,4], colors=np.matmul(rnd.random((len(nse),1)),np.ones((1,3)))*min_gray, zorder=1))
+        ax.add_collection(LineCollection(nse[:,0:4].reshape((len(nse),2,2)),linewidths=nse[:,4], colors=np.matmul(nse[:,5].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=1))
     for s in sha:
         if s[0] < 3:
-            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=np.ones(3)*rnd.random()*min_gray, fill=False)
+            patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=s[6]*np.ones(3)*min_gray, fill=False)
         else:
-            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5], ec=np.ones(3)*rnd.random()*min_gray, fill=False)
+            patch=matplotlib.patches.RegularPolygon(s[1:3],numVertices=int(s[0]),radius=s[3],orientation=s[4],lw=s[5], ec=s[6]*np.ones(3)*min_gray, fill=False)
         box.append(patch.get_extents().get_points())
         patches.append(patch)
     if show_center:
