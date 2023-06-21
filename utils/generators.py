@@ -25,7 +25,7 @@ def gen_shapes(rnd=np.random.default_rng(), num_shapes=25,max_radius=1/20,min_ra
     Returns
     -------
     params : ndarray
-        An array of size=(num_shapes,5) of all the parameters of the shapes
+        An array of size=(num_shapes,7) of all the parameters of the shapes
     """
 
     params = np.zeros((num_shapes,7))
@@ -46,14 +46,14 @@ def gen_shapes(rnd=np.random.default_rng(), num_shapes=25,max_radius=1/20,min_ra
     return params
 
 
-def gen_noise(rnd=np.random.default_rng(), num_noise=500, max_line=1/20, min_line=1/80):
+def gen_lines(rnd=np.random.default_rng(), num_lines=500, max_line=1/20, min_line=1/80):
     """Generates some random lines aka noise, i.e. the corresponding parameter set
 
     Parameters
     ----------
     rnd : Generator
         The random generator for position, size and rotation of the lines
-    num_noise : int
+    num_lines : int
         Number of lines to be generated
     max_line : float
         Maximum length of a line relative to 1
@@ -63,10 +63,10 @@ def gen_noise(rnd=np.random.default_rng(), num_noise=500, max_line=1/20, min_lin
     Returns
     -------
     params : ndarray
-        An array of size=(num_noise,4) of all the parameters of the lines
+        An array of size=(num_lines,6) of all the parameters of the lines
     """
 
-    params = rnd.random((num_noise,6))
+    params = rnd.random((num_lines,6))
     params[:,2] = min_line+params[:,2]*(max_line-min_line)
     params[:,0] = params[:,2]+np.multiply(params[:,0],1-2*params[:,2])
     params[:,1] = params[:,2]+np.multiply(params[:,1],1-2*params[:,2])
