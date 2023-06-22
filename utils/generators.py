@@ -68,9 +68,15 @@ def gen_lines(rnd=np.random.default_rng(), num_lines=500, max_line=1/20, min_lin
 
     params = rnd.random((num_lines,6))
     params[:,2] = min_line+params[:,2]*(max_line-min_line)
-    params[:,0] = params[:,2]+np.multiply(params[:,0],1-2*params[:,2])
-    params[:,1] = params[:,2]+np.multiply(params[:,1],1-2*params[:,2])
-    params[:,2:4] = np.c_[params[:,0]+np.multiply(params[:,2],np.cos(params[:,3]*2*np.pi)),params[:,1]+np.multiply(params[:,2],np.sin(params[:,3]*2*np.pi))]
+    params[:,2:4] = np.c_[np.multiply(params[:,2],np.cos(params[:,3]*2*np.pi)),np.multiply(params[:,2],np.sin(params[:,3]*2*np.pi))]
+    params[:,0] = np.multiply(params[:,0],1-np.abs(params[:,2]))
+    params[:,1] = np.multiply(params[:,1],1-np.abs(params[:,3]))
+    minus = np.where(params[:,2]<0)
+    params[minus,0] = params[minus,0]-params[minus,2]
+    minus = np.where(params[:,3]<0)
+    params[minus,1] = params[minus,1]-params[minus,3]
+    params[:,2] = params[:,0]+params[:,2]
+    params[:,3] = params[:,1]+params[:,3]
     return params
 
 
