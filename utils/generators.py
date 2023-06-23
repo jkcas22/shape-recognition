@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.collections import PatchCollection, LineCollection
+from matplotlib.collections import PatchCollection, LineCollection, EllipseCollection
 
 
 def gen_shapes(rnd=np.random.default_rng(), num_shapes=25,max_radius=1/20,min_radius=1/40, no_rotation=False, no_scaling=False):
@@ -80,17 +80,46 @@ def gen_lines(rnd=np.random.default_rng(), num_lines=500, max_line=1/20, min_lin
     return params
 
 
-def gen_image(shapes, noise = None, im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
+def gen_ellipses(rnd=np.random.default_rng(), num_ellipses=500, max_diam=1/10, min_diam=1/80):
+    """Generates some random ellipses aka noise, i.e. the corresponding parameter set
+
+    Parameters
+    ----------
+    rnd : Generator
+        The random generator for position, size and rotation of the lines
+    num_ellipses : int
+        Number of ellipses to be generated
+    max_diam : float
+        Maximum diameter of an ellipse, relative to 1
+    min_diam : float
+        Minimum diameter of an ellipse, relative to 1
+
+    Returns
+    -------
+    params : ndarray
+        An array of size=(num_lines,7) of all the parameters of the ellipses
+    """
+
+    params = rnd.random((num_ellipses,7))
+    params[:,2:4] = min_diam+params[:,2:4]*(max_diam-min_diam)
+    dist = np.max(params[:,2:4])/2
+    params[:,0] = dist + np.multiply(params[:,0],1-2*dist)
+    params[:,1] = dist + np.multiply(params[:,1],1-2*dist)
+    params[:,4] = params[:,4]*180
+    return params
+
+
+def gen_image(shapes, lines = None, ellipses = None, im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
     """Generates an image with geometric shapes and noise on it
 
     Parameters
     ----------
     shapes : ndarray
         A list of shapes to draw
-    noise : ndarray
+    lines : ndarray
         A list of lines to draw
-    rnd : Generator
-        Generator for random numbers representing the line width of different shapes
+    ellipses : ndarray
+        A list of ellipses to draw
     im_size : int
         The width and hight of the image (in pixel)
     max_lw : float
@@ -108,8 +137,10 @@ def gen_image(shapes, noise = None, im_size=160, max_lw=0.15, min_lw=0.1, min_gr
         An array of size=(im_size,im_size) containing the greyscale values of each pixel
     sha : ndarray
         The array of shape parameters relativ to im_size
-    nse : ndarray
-        The array of noise i.e. line parameters relativ to im_size
+    lne : ndarray
+        The array of lines i.e. line parameters relativ to im_size
+    elp : ndarray
+        The array of ellipses i.e. ellipse parameters relativ to im_size
     box : ndarray
         The array of enclosing boxes around shapes
     """
@@ -124,13 +155,20 @@ def gen_image(shapes, noise = None, im_size=160, max_lw=0.15, min_lw=0.1, min_gr
     ax = plt.gca()
     patches = []
     box = []
-    if noise is None:
-        nse = None
+    if ellipses is None:
+        eps = None
     else:
-        nse = noise.copy()
-        nse[:,0:4] = nse[:,0:4]*im_size
-        nse[:,4] = min_lw+nse[:,4]*(max_lw-min_lw)
-        ax.add_collection(LineCollection(nse[:,0:4].reshape((len(nse),2,2)),linewidths=nse[:,4], colors=np.matmul(nse[:,5].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=1))
+        eps = ellipses.copy()
+        eps[:,0:4] = eps[:,0:4]*im_size
+        eps[:,5] = min_lw+eps[:,5]*(max_lw-min_lw)
+        ax.add_collection(EllipseCollection(eps[:,2],eps[:,3],eps[:,4],units='x',offsets=eps[:,0:2],linewidths=eps[:,5], edgecolors='face',facecolors=np.matmul(eps[:,6].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=1))
+    if lines is None:
+        lns = None
+    else:
+        lns = lines.copy()
+        lns[:,0:4] = lns[:,0:4]*im_size
+        lns[:,4] = min_lw+lns[:,4]*(max_lw-min_lw)
+        ax.add_collection(LineCollection(lns[:,0:4].reshape((len(lns),2,2)),linewidths=lns[:,4], colors=np.matmul(lns[:,5].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=2))
     for s in sha:
         if s[0] < 3:
             patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=s[6]*np.ones(3)*min_gray, fill=False)
@@ -141,14 +179,14 @@ def gen_image(shapes, noise = None, im_size=160, max_lw=0.15, min_lw=0.1, min_gr
     if show_center:
         for s in sha:
             patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, ec='0'))
-    ax.add_collection(PatchCollection(patches, match_original=True, zorder=2))
+    ax.add_collection(PatchCollection(patches, match_original=True, zorder=3))
     fig = plt.gcf()
     fig.set(figwidth=1, figheight=1, dpi=im_size)
     fig.canvas.draw()
     fig.canvas.flush_events()
     img = np.array(fig.canvas.renderer.buffer_rgba())
     plt.cla()
-    return (img[:,:,0],sha,nse,np.reshape(box, (-1,4), order='F'))
+    return (img[:,:,0],sha,lns,eps,np.reshape(box, (-1,4), order='F'))
 
 
 def gen_details(shapes_im_size, shapes, image, rnd=np.random.default_rng(), max_fluct=0):
