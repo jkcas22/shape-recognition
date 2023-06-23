@@ -102,9 +102,14 @@ def gen_ellipses(rnd=np.random.default_rng(), num_ellipses=500, max_diam=1/10, m
 
     params = rnd.random((num_ellipses,7))
     params[:,2:4] = min_diam+params[:,2:4]*(max_diam-min_diam)
-    dist = np.max(params[:,2:4])/2
-    params[:,0] = dist + np.multiply(params[:,0],1-2*dist)
-    params[:,1] = dist + np.multiply(params[:,1],1-2*dist)
+    cos2 = np.square(np.cos(params[:,4]*np.pi))
+    sin2 = np.square(np.sin(params[:,4]*np.pi))
+    a2 = np.square(params[:,2]/2)
+    b2 = np.square(params[:,3]/2)
+    dist0 = np.sqrt(np.multiply(a2,cos2)+np.multiply(b2,sin2))
+    dist1 = np.sqrt(np.multiply(a2,sin2)+np.multiply(b2,cos2))
+    params[:,0] = dist0 + np.multiply(params[:,0],1-2*dist0)
+    params[:,1] = dist1 + np.multiply(params[:,1],1-2*dist1)
     params[:,4] = params[:,4]*180
     return params
 
