@@ -114,7 +114,7 @@ def gen_ellipses(rnd=np.random.default_rng(), num_ellipses=500, max_diam=1/10, m
     return params
 
 
-def gen_image(shapes, lines, ellipses, im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
+def gen_images(shapes, lines, ellipses, im_size=160, max_lw=0.15, min_lw=0.1, min_gray=0.5, show_center=False):
     """Generates an image with geometric shapes and noise on it
 
     Parameters
