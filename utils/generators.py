@@ -165,15 +165,15 @@ def gen_image(shapes, lines = None, ellipses = None, im_size=160, max_lw=0.15, m
     else:
         eps = ellipses.copy()
         eps[:,0:4] = eps[:,0:4]*im_size
-        eps[:,5] = min_lw+eps[:,5]*(max_lw-min_lw)
-        ax.add_collection(EllipseCollection(eps[:,2],eps[:,3],eps[:,4],units='x',offsets=eps[:,0:2],linewidths=eps[:,5], edgecolors='face',facecolors=np.matmul(eps[:,6].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=1))
+        #eps[:,5] = min_lw+eps[:,5]*(max_lw-min_lw)
+        ax.add_collection(EllipseCollection(eps[:,2],eps[:,3],eps[:,4],units='x',offsets=eps[:,0:2],linewidths=min_lw, edgecolors='face',facecolors=np.matmul(eps[:,6].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=1))
     if lines is None:
         lns = None
     else:
         lns = lines.copy()
         lns[:,0:4] = lns[:,0:4]*im_size
         lns[:,4] = min_lw+lns[:,4]*(max_lw-min_lw)
-        ax.add_collection(LineCollection(lns[:,0:4].reshape((len(lns),2,2)),linewidths=lns[:,4], colors=np.matmul(lns[:,5].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=2))
+        ax.add_collection(LineCollection(lns[:,0:4].reshape((len(lns),2,2)),linewidths=lns[:,4], colors=np.matmul(lns[:,5].reshape((-1,1)),np.ones((1,3)))*min_gray, zorder=3))
     for s in sha:
         if s[0] < 3:
             patch=matplotlib.patches.Circle(s[1:3], radius=s[3], lw=s[5], ec=s[6]*np.ones(3)*min_gray, fill=False)
@@ -184,7 +184,7 @@ def gen_image(shapes, lines = None, ellipses = None, im_size=160, max_lw=0.15, m
     if show_center:
         for s in sha:
             patches.append(matplotlib.patches.Circle(s[1:3], radius=.5, lw=2, ec='0'))
-    ax.add_collection(PatchCollection(patches, match_original=True, zorder=3))
+    ax.add_collection(PatchCollection(patches, match_original=True, zorder=2))
     fig = plt.gcf()
     fig.set(figwidth=1, figheight=1, dpi=im_size)
     fig.canvas.draw()
