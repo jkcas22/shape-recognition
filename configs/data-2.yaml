@@ -1,8 +1,10 @@
 # Images and labels direcotry should be relative to train.py
-TRAIN_DIR_IMAGES: 'data/train'
-TRAIN_DIR_LABELS: 'data/train'
-VALID_DIR_IMAGES: 'data/validate'
-VALID_DIR_LABELS: 'data/validate'
+TRAIN_DIR_IMAGES: 'data/train-2'
+TRAIN_DIR_LABELS: 'data/labels/train'
+VALID_DIR_IMAGES: 'data/validate-2'
+VALID_DIR_LABELS: 'data/labels/validate'
+TEST_DIR_IMAGES: 'data/test-2'
+TEST_DIR_LABELS: 'data/labels/test'
 
 # Class names.
 CLASSES: [

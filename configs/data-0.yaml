@@ -3,6 +3,8 @@ TRAIN_DIR_IMAGES: 'data/train-0'
 TRAIN_DIR_LABELS: 'data/labels/train'
 VALID_DIR_IMAGES: 'data/validate-0'
 VALID_DIR_LABELS: 'data/labels/validate'
+TEST_DIR_IMAGES: 'data/test-0'
+TEST_DIR_LABELS: 'data/labels/test'
 
 # Class names.
 CLASSES: [
