@@ -11,12 +11,10 @@ from models.create_fasterrcnn_model import create_model
 from torch_utils import utils
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from pprint import pprint
-from tqdm import tqdm
 
 import torch
 import argparse
 import yaml
-import torchvision
 import time
 import numpy as np
 
@@ -60,11 +58,6 @@ if __name__ == '__main__':
         '-d', '--device', 
         default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
         help='computation/training device, default is GPU if GPU present'
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='show class-wise mAP'
     )
     parser.add_argument(
         '-st', '--square-training',
@@ -150,7 +143,7 @@ if __name__ == '__main__':
         target = []
         preds = []
         counter = 0
-        for images, targets in tqdm(metric_logger.log_every(data_loader, 100, header), total=len(data_loader)):
+        for images, targets in metric_logger.log_every(data_loader, 100, header):
             counter += 1
             images = list(img.to(device) for img in images)
 
@@ -175,18 +168,10 @@ if __name__ == '__main__':
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
 
-        print(f"counter = {counter}")
-        pred0=preds[0]
-        targ0=target[0]
-        print(len(pred0))
-        print(pred0)
-        print(len(targ0))
-        print(targ0)
-
         # gather the stats from all processes
         metric_logger.synchronize_between_processes()
         torch.set_num_threads(n_threads)
-        metric = MeanAveragePrecision(class_metrics=args['verbose'])
+        metric = MeanAveragePrecision(class_metrics=True)
         metric.update(preds, target)
         metric_summary = metric.compute()
         return metric_summary
@@ -199,29 +184,16 @@ if __name__ == '__main__':
     )
 
     print('\n')
-    pprint(stats)
-    if args['verbose']:
-        print('\n')
-        pprint(f"Classes: {CLASSES}")
-        print('\n')
-        print('AP / AR per class')
-        empty_string = ''
-        if len(CLASSES) > 2: 
-            num_hyphens = 73
-            print('-'*num_hyphens)
-            print(f"|    | Class{empty_string:<16}| AP{empty_string:<18}| AR{empty_string:<18}|")
-            print('-'*num_hyphens)
-            class_counter = 0
-            for i in range(0, len(CLASSES)-1, 1):
-                class_counter += 1
-                print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}| {np.array(stats['mar_100_per_class'][i]):.3f}{empty_string:<15}|")
-            print('-'*num_hyphens)
-            print(f"|Avg{empty_string:<23} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
-        else:
-            num_hyphens = 62
-            print('-'*num_hyphens)
-            print(f"|Class{empty_string:<10} | AP{empty_string:<18}| AR{empty_string:<18}|")
-            print('-'*num_hyphens)
-            print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
-            print('-'*num_hyphens)
-            print(f"|Avg{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
+    print(f'Test data from {args["data"]}') 
+
+    empty_string = ''
+    num_hyphens = 63
+    print('-'*num_hyphens)
+    print(f"| Class{empty_string:<11}| AP{empty_string:<18}| AR{empty_string:<18}|")
+    print('-'*num_hyphens)
+    for i in range(len(CLASSES)-1):
+        print(f"| {CLASSES[i+1]:<15} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}| {np.array(stats['mar_100_per_class'][i]):.3f}{empty_string:<15}|")
+    print('-'*num_hyphens)
+    print(f"| Avg{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
+    print('-'*num_hyphens)
+    print('\n')

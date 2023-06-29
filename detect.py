@@ -70,12 +70,6 @@ def parse_opt():
         help='visualize output only if this argument is passed'
     )
     parser.add_argument(
-        '-mpl', '--mpl-show', 
-        dest='mpl_show', 
-        action='store_true',
-        help='visualize using matplotlib, helpful in notebooks'
-    )
-    parser.add_argument(
         '-d', '--device', 
         default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
         help='computation/training device, default is GPU if GPU present'
@@ -85,6 +79,13 @@ def parse_opt():
         default=None,
         type=int,
         help='resize image to, by default use the original frame/image size'
+    )
+    parser.add_argument(
+        '-n', '--num-images',
+        dest='num_images', 
+        default=3,
+        type=int,
+        help='process only the first n images in folder path'
     )
     parser.add_argument(
         '-nlb', '--no-labels',
@@ -140,7 +141,6 @@ def main(args):
             NUM_CLASSES = checkpoint['data']['NC']
             CLASSES = checkpoint['data']['CLASSES']
         try:
-            print('Building from model name arguments...')
             build_model = create_model[str(args['model'])]
         except:
             build_model = create_model[checkpoint['model_name']]
@@ -155,17 +155,15 @@ def main(args):
     else:
         DIR_TEST = args['input']
         test_images = collect_all_images(DIR_TEST)
-    print(f"Test instances: {len(test_images)}")
 
     # Define the detection threshold any detection having
     # score below this will be discarded.
     detection_threshold = args['threshold']
 
-    # To count the total number of frames iterated through.
-    frame_count = 0
-    # To keep adding the frames' FPS.
-    total_fps = 0
-    for i in range(len(test_images)):
+    N = args['num_images']
+    n = len(test_images)
+    if n>N: n=N
+    for i in range(n):
         # Get the image file name for saving output later on.
         image_name = test_images[i].split(os.path.sep)[-1].split('.')[0]
         orig_image = cv2.imread(test_images[i])
@@ -189,14 +187,10 @@ def main(args):
             outputs = model(image.to(DEVICE))
         end_time = time.time()
 
-        # Get the current fps.
-        fps = 1 / (end_time - start_time)
-        # Add `fps` to `total_fps`.
-        total_fps += fps
-        # Increment frame count.
-        frame_count += 1
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+        print('\n')
+        print(f"{image_name}.jpg")
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
             orig_image = inference_annotations(
@@ -208,22 +202,14 @@ def main(args):
                 image_resized,
                 args
             )
+            cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
             if args['show']:
-                cv2.imshow('Prediction', orig_image)
-                cv2.waitKey(1)
-            if args['mpl_show']:
-                plt.imshow(orig_image[:, :, ::-1])
+                image = plt.imread(f"{OUT_DIR}/{image_name}.jpg")
+                plt.figure(figsize=(10,7))
+                plt.imshow(image)
                 plt.axis('off')
                 plt.show()
-        cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
-        print(f"Image {i+1} done...")
-        print('-'*50)
-
-    print('TEST PREDICTIONS COMPLETE')
     cv2.destroyAllWindows()
-    # Calculate and print the average FPS.
-    avg_fps = total_fps / frame_count
-    print(f"Average FPS: {avg_fps:.3f}")
 
 if __name__ == '__main__':
     args = parse_opt()
