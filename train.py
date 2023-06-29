@@ -482,7 +482,7 @@ def main(args):
             OUT_DIR, 
             stats, 
             epoch,
-            train_loss_list,
+            train_loss_list_epoch,
             loss_cls_list,
             loss_box_reg_list,
             loss_objectness_list,
