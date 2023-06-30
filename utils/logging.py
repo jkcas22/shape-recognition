@@ -1,4 +1,4 @@
-import logging
+import multiprocessing, logging
 import os
 import pandas as pd
 import wandb
@@ -11,8 +11,8 @@ from torch.utils.tensorboard.writer import SummaryWriter
 def wandb_init(name):
     wandb.init(name=name)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(logging.INFO)
 
 def set_log(log_dir):
     logging.basicConfig(
