@@ -205,7 +205,7 @@ def main(args):
             cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
             if args['show']:
                 image = plt.imread(f"{OUT_DIR}/{image_name}.jpg")
-                plt.figure(figsize=(10,7))
+                plt.figure(figsize=(10,10))
                 plt.imshow(image)
                 plt.axis('off')
                 plt.show()
