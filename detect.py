@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 
 from models.create_fasterrcnn_model import create_model
 from utils.annotations import inference_annotations
-from utils.general import set_infer_dir
 from utils.transforms import infer_transforms, resize
 
 def collect_all_images(dir_test):
@@ -41,7 +40,11 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-i', '--input', 
-        help='folder path to input input image (one image or a folder path)',
+        help='folder path to input image (one image or a folder path)',
+    )
+    parser.add_argument(
+        '-o', '--output', 
+        help='folder path to output results image',
     )
     parser.add_argument(
         '--data', 
@@ -115,7 +118,7 @@ def main(args):
         CLASSES = data_configs['CLASSES']
 
     DEVICE = args['device']
-    OUT_DIR = set_infer_dir()
+    OUT_DIR = args['output']
 
     # Load the pretrained model
     if args['weights'] is None:
@@ -189,8 +192,7 @@ def main(args):
 
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
-        print('\n')
-        print(f"{image_name}.jpg")
+        print(f"{DIR_TEST}/{image_name}.jpg --> {OUT_DIR}/{image_name}.jpg")
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
             orig_image = inference_annotations(
@@ -209,7 +211,9 @@ def main(args):
                 plt.imshow(image)
                 plt.axis('off')
                 plt.show()
-    cv2.destroyAllWindows()
+                print('\n')
+    _= cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     args = parse_opt()
