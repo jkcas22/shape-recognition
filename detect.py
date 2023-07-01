@@ -12,6 +12,8 @@ import time
 import argparse
 import yaml
 import matplotlib.pyplot as plt
+import pandas as pd
+from pandas import DataFrame 
 
 from models.create_fasterrcnn_model import create_model
 from utils.annotations import inference_annotations
@@ -192,6 +194,12 @@ def main(args):
 
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+
+        boxes = DataFrame(outputs[0]['boxes'].data.numpy(),columns=['x0','y0','x1','y1'])
+        scores = DataFrame({'score':outputs[0]['scores'].data.numpy()})
+        labels = DataFrame({'class':[CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]})
+        result = pd.concat([labels,scores,boxes],axis=1)
+
         print(f"{DIR_TEST}/{image_name}.jpg --> {OUT_DIR}/{image_name}.jpg")
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
@@ -205,6 +213,7 @@ def main(args):
                 args
             )
             cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
+            result.to_csv(f"{OUT_DIR}/{image_name}.csv",index=None)
             if args['show']:
                 image = plt.imread(f"{OUT_DIR}/{image_name}.jpg")
                 plt.figure(figsize=(10,10))
