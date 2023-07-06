@@ -6,3 +6,5 @@
     - Train [Faster RCNN ResNet50 FPN V2](./faster_rcnn_training-1.ipynb) on images of complexity 1.
     - Train [Faster RCNN ResNet50 FPN V2](./faster_rcnn_training-2.ipynb) on images of complexity 2.
     - Train [Faster RCNN ResNet50 FPN V2](./faster_rcnn_training-3.ipynb) on images of complexity 3.
+
+# [Project Report](./CAS-ADS_Final-Project_Kraehenbuehl.pdf)
