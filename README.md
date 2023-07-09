@@ -7,4 +7,5 @@
     - Train [Faster RCNN ResNet50 FPN V2](./faster_rcnn_training-2.ipynb) on images of complexity 2.
     - Train [Faster RCNN ResNet50 FPN V2](./faster_rcnn_training-3.ipynb) on images of complexity 3.
 
+----
 ![Object detection](./outputs/inference/data-2/test0000.jpg)
